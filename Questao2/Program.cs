@@ -3,6 +3,8 @@ using Questao2;
 
 public class Program
 {
+    private const int FIRSTPAGE = 1;
+
     public static async Task Main(string[] args)
     {
         string teamName = "Paris Saint-Germain";
@@ -25,40 +27,56 @@ public class Program
     public static async Task<int> GetTotalScoredGoals(string team, int year)
     {
         int totalGoals = 0;
+        List<Partidas> allMatches = new();
 
-        // Faz a primeira requisição para obter o total de páginas
-        HttpResponseMessage response = await MakeApiRequest(team, year, 1, "team1");
-        var responseString = JsonConvert.DeserializeObject<ApiResponse>(await response.Content.ReadAsStringAsync());
+        HttpResponseMessage team1Response = await HttpRequest(team, year, 1, "team1");
+        var responseString = JsonConvert.DeserializeObject<ApiResponse>(await team1Response.Content.ReadAsStringAsync());
 
-        if (responseString == null || responseString.Data == null)
-            return totalGoals;
-
-        // Itera por todas as páginas de resultados para `team1`
-        foreach (var page in Enumerable.Range(1, responseString.TotalPages))
+        if (responseString != null && responseString.Data != null)
         {
-            response = await MakeApiRequest(team, year, page, "team1");
-            responseString = JsonConvert.DeserializeObject<ApiResponse>(await response.Content.ReadAsStringAsync());
-
-            foreach (var match in responseString.Data)
+            foreach (var currentPage in Enumerable.Range(1, responseString.TotalPages))
             {
-                totalGoals += int.Parse(match.Team1Goals);
+                if (currentPage > FIRSTPAGE)
+                {
+                    var pageResponse = await HttpRequest(team, year, currentPage, "team1");
+                    var pageData = JsonConvert.DeserializeObject<ApiResponse>(await pageResponse.Content.ReadAsStringAsync());
+
+                    if (pageData?.Data != null)
+                        allMatches.AddRange(pageData.Data);
+                }
+                else
+                    allMatches.AddRange(responseString.Data);
             }
         }
 
-        // Agora busca como `team2`
-        response = await MakeApiRequest(team, year, 1, "team2");
-        responseString = JsonConvert.DeserializeObject<ApiResponse>(await response.Content.ReadAsStringAsync());
+        HttpResponseMessage team2Response = await HttpRequest(team, year, 1, "team2");
+        responseString = JsonConvert.DeserializeObject<ApiResponse>(await team2Response.Content.ReadAsStringAsync());
 
-        if (responseString == null || responseString.Data == null)
-            return totalGoals;
-
-        // Itera por todas as páginas de resultados para `team2`
-        foreach (var page in Enumerable.Range(1, responseString.TotalPages))
+        if (responseString != null && responseString.Data != null)
         {
-            response = await MakeApiRequest(team, year, page, "team2");
-            responseString = JsonConvert.DeserializeObject<ApiResponse>(await response.Content.ReadAsStringAsync());
+            foreach (var currentePage in Enumerable.Range(1, responseString.TotalPages))
+            {
+                if (currentePage > FIRSTPAGE)
+                {
+                    var pageResponse = await HttpRequest(team, year, currentePage, "team2");
+                    var pageData = JsonConvert.DeserializeObject<ApiResponse>(await pageResponse.Content.ReadAsStringAsync());
+                    if (pageData?.Data != null)
+                        allMatches.AddRange(pageData.Data);
+                }
+                else
+                    allMatches.AddRange(responseString.Data);
 
-            foreach (var match in responseString.Data)
+            }
+        }
+
+        foreach (var match in allMatches)
+        {
+            if (match.Team1 == team && !string.IsNullOrEmpty(match.Team1Goals))
+            {
+                totalGoals += int.Parse(match.Team1Goals);
+            }
+
+            if (match.Team2 == team && !string.IsNullOrEmpty(match.Team2Goals))
             {
                 totalGoals += int.Parse(match.Team2Goals);
             }
@@ -67,7 +85,7 @@ public class Program
         return totalGoals;
     }
 
-    private static async Task<HttpResponseMessage> MakeApiRequest(string team, int year, int page, string teamType)
+    private static async Task<HttpResponseMessage> HttpRequest(string team, int year, int page, string teamType)
     {
         HttpClient client = new();
         string baseUrl = "https://jsonmock.hackerrank.com/api/football_matches";
@@ -77,7 +95,6 @@ public class Program
         return await client.GetAsync(url);
     }
 
-    // API Response Models
     public class ApiResponse
     {
         public int Page { get; set; }
