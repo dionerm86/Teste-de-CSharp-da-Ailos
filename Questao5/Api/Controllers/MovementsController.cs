@@ -1,5 +1,8 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Polly;
+using Polly.Retry;
+using Polly.CircuitBreaker;
 using Questao5.Application.Commands.Movimentacao;
 using Questao5.Application.Helpers;
 
@@ -10,10 +13,19 @@ namespace Questao5.Api.Controllers
     public class MovementsController : ControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly AsyncRetryPolicy _retryPolicy;
+        private readonly AsyncCircuitBreakerPolicy _circuitBreakerPolicy;
 
         public MovementsController(IMediator mediator)
         {
             _mediator = mediator;
+            _retryPolicy = Policy
+                .Handle<Exception>()
+                .WaitAndRetryAsync(3, attempt => TimeSpan.FromSeconds(attempt));
+
+            _circuitBreakerPolicy = Policy
+                .Handle<Exception>()
+                .CircuitBreakerAsync(5, TimeSpan.FromSeconds(30));
         }
 
         /// <summary>
@@ -32,10 +44,12 @@ namespace Questao5.Api.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-
             try
             {
-                var result = await _mediator.Send(command);
+                var result = await _retryPolicy.ExecuteAsync(() =>
+                    _circuitBreakerPolicy.ExecuteAsync(() =>
+                        _mediator.Send(command)));
+
                 return CreatedAtAction(nameof(CreateMovement), new { id = result }, result);
             }
             catch (Exception ex)

@@ -2,7 +2,6 @@
 using Questao5.Domain.Entities;
 using Questao5.Domain.Interfaces;
 using System.Data;
-using System.Data.Common;
 
 namespace Questao5.Infrastructure.Database.Repositorios
 {
@@ -25,7 +24,7 @@ namespace Questao5.Infrastructure.Database.Repositorios
         {
             return await _dbConnection.QueryFirstOrDefaultAsync<Idempotencia>(
                 "SELECT * FROM idempotencia WHERE chave_idempotencia = @ChaveIdempotencia",
-                new { ChaveIdempotencia = chaveIdempotencia }); // Corrigido o nome do parâmetro
+                new { ChaveIdempotencia = chaveIdempotencia });
         }
 
     }
