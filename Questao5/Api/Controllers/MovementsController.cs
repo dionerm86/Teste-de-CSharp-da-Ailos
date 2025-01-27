@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Questao5.Application.Commands.Movimentacao;
+using Questao5.Application.Helpers;
 
 namespace Questao5.Api.Controllers
 {
@@ -21,6 +22,12 @@ namespace Questao5.Api.Controllers
         /// <param name="command">Dados do comando para criar o movimento.</param>
         /// <returns>Resultado da operação.</returns>
         [HttpPost]
+        [ProducesResponseType(typeof(Result<string>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status405MethodNotAllowed)]
+        [ProducesResponseType(StatusCodes.Status412PreconditionFailed)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> CreateMovement([FromBody] CriarMovimentacaoCommand command)
         {
             if (!ModelState.IsValid)
@@ -38,7 +45,13 @@ namespace Questao5.Api.Controllers
         }
 
         [HttpGet("{idContaCorrente}/saldo")]
-        public async Task<IActionResult> GetSaldo(Guid idContaCorrente)
+        [ProducesResponseType(typeof(Result<long>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status405MethodNotAllowed)]
+        [ProducesResponseType(StatusCodes.Status412PreconditionFailed)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetSaldo(string idContaCorrente)
         {
             var query = new ConsultarSaldoCommand(idContaCorrente);
             var result = await _mediator.Send(query);
@@ -49,7 +62,7 @@ namespace Questao5.Api.Controllers
             return Ok(new
             {
                 Numero = result.Data.Numero,
-                NomeTitular = result.Data.NomeTitular,
+                NomeTitular = result.Data.Nome,
                 DataHoraResposta = result.Data.DataHoraResposta,
                 SaldoAtual = result.Data.SaldoAtual
             });

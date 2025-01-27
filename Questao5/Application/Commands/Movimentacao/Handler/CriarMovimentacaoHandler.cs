@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Newtonsoft.Json;
+using Questao5.Application.Validations;
 using Questao5.Domain.Entities;
 using Questao5.Domain.Interfaces;
 
@@ -20,31 +21,20 @@ namespace Questao5.Application.Commands.Movimentacao.Handler
 
         public async Task<string> Handle(CriarMovimentacaoCommand request, CancellationToken cancellationToken)
         {
-            // Validations
-            var contaCorrente = await _contaCorrenteRepositorio.ObterPorId(request.IdContaCorrente);
-
-            if (contaCorrente == null)
+            var contaCorrente = await _contaCorrenteRepositorio.ObterPorId(request.IdContaCorrente) ??
                 throw new Exception("INVALID_ACCOUNT: Conta corrente não encontrada.");
 
-            if (contaCorrente.Ativo == 0)
-                throw new Exception("INACTIVE_ACCOUNT: Conta corrente inativa.");
+            var saldoAtual = await _movimentacaoRepositorio.ObterSaldoAtualAsync(request.IdContaCorrente);
 
-            if (request.Valor <= 0)
-                throw new Exception("INVALID_VALUE: O valor deve ser positivo.");
+            MovimentoValidacao.ValidarMovimentacao(request, contaCorrente.Ativo, saldoAtual);
 
-            if (request.TipoMovimentacao != "C" && request.TipoMovimentacao != "D")
-                throw new Exception("INVALID_TYPE: Tipo de movimento inválido.");
-
-            // Idempotency check
             var existingRequest = await _idempotenciaRepositorio.IsExisteChaveIdempotente(request.ChaveIdempotencia.ToString());
 
             if (existingRequest != null)
                 return existingRequest.Resultado;
 
-            // Serialize the request to JSON
             var requestJson = JsonConvert.SerializeObject(request);
 
-            // Create the movement
             var movimento = new Movimento
             {
                 IdMovimento = Guid.NewGuid().ToString(),

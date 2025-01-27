@@ -2,8 +2,8 @@
 {
     public class SaldoResponse
     {
-        public string Numero { get; set; }
-        public string NomeTitular { get; set; }
+        public int Numero { get; set; }
+        public string Nome { get; set; }
         public DateTime DataHoraResposta { get; set; }
         public decimal SaldoAtual { get; set; }
     }

@@ -6,9 +6,9 @@ namespace Questao5.Application.Commands.Movimentacao
 {
     public class ConsultarSaldoCommand : IRequest<Result<SaldoResponse>>
     {
-        public Guid IdContaCorrente { get; }
+        public string IdContaCorrente { get; }
 
-        public ConsultarSaldoCommand(Guid idContaCorrente)
+        public ConsultarSaldoCommand(string idContaCorrente)
         {
             IdContaCorrente = idContaCorrente;
         }

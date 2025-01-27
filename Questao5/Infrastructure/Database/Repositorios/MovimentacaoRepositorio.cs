@@ -14,29 +14,36 @@ namespace Questao5.Infrastructure.Database.Repositorios
             _dbConnection = dbConnection;
         }
 
-        public async Task<decimal> GetTotalCreditosAsync(Guid idContaCorrente)
-        {
-            var query = @"SELECT ISNULL(SUM(Valor), 0)
-                      FROM Movimentacoes
-                      WHERE IdContaCorrente = @IdContaCorrente AND TipoMovimentacao = 'C'";
-
-            return await _dbConnection.QueryFirstOrDefaultAsync<decimal>(query, new { IdContaCorrente = idContaCorrente });
-        }
-
-        public async Task<decimal> GetTotalDebitosAsync(Guid idContaCorrente)
-        {
-            var query = @"SELECT ISNULL(SUM(Valor), 0)
-                      FROM Movimentacoes
-                      WHERE IdContaCorrente = @IdContaCorrente AND TipoMovimentacao = 'D'";
-
-            return await _dbConnection.QueryFirstOrDefaultAsync<decimal>(query, new { IdContaCorrente = idContaCorrente });
-        }
-
         public async Task CriarMovimentacao(Movimento movimento)
         {
             await _dbConnection.ExecuteAsync(
                 "INSERT INTO movimento (idmovimento, idcontacorrente, datamovimento, tipomovimento, valor) VALUES (@IdMovimento, @IdContaCorrente, @DataMovimento, @TipoMovimento, @Valor)",
                 movimento);
+        }
+
+        public async Task<decimal> ObterSaldoAtualAsync(string idContaCorrente)
+        {
+            var credito = await ObterTotalMovimenacaoCreditoAsync(idContaCorrente);
+            var debito = await ObterTotalMovimenacaoDebitoAsync(idContaCorrente);
+            return credito - debito;
+        }
+
+        private async Task<decimal> ObterTotalMovimenacaoCreditoAsync(string idContaCorrente)
+        {
+            var query = @"SELECT COALESCE(SUM(Valor), 0)
+                 FROM movimento
+                 WHERE IdContaCorrente = @IdContaCorrente AND TipoMovimento = 'C'";
+
+            return await _dbConnection.QueryFirstOrDefaultAsync<decimal>(query, new { IdContaCorrente = idContaCorrente });
+        }
+
+        private async Task<decimal> ObterTotalMovimenacaoDebitoAsync(string idContaCorrente)
+        {
+            var query = @"SELECT COALESCE(SUM(Valor), 0)
+                      FROM movimento
+                      WHERE IdContaCorrente = @IdContaCorrente AND TipoMovimento = 'D'";
+
+            return await _dbConnection.QueryFirstOrDefaultAsync<decimal>(query, new { IdContaCorrente = idContaCorrente });
         }
     }
 }
