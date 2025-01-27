@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Questao5.Application.Commands.Requests
+namespace Questao5.Application.Commands.Movimentacao
 {
     public class CreateMovementCommand : IRequest<string>
     {
@@ -8,5 +8,6 @@ namespace Questao5.Application.Commands.Requests
         public string Numero { get; set; }
         public decimal Valor { get; set; }
         public string TipoMovimentacao { get; set; } // "C" or "D"
+        public Guid ChaveIdempotencia { get; set; }
     }
 }

@@ -1,4 +1,6 @@
 ﻿using Microsoft.Data.Sqlite;
+using Questao5.Domain.Interfaces;
+using Questao5.Infrastructure.Database.Repositorios;
 using System.Data;
 
 namespace Infrastructure.Database
@@ -9,6 +11,7 @@ namespace Infrastructure.Database
         {
             services.AddTransient<IDbConnection>(provider =>
                 new SqliteConnection(configuration.GetConnectionString("DatabaseName")));
+
         }
     }
 }

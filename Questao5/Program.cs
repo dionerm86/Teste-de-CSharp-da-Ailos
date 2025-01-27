@@ -1,7 +1,9 @@
+using FluentAssertions.Common;
 using MediatR;
 using Microsoft.Data.Sqlite;
 using Microsoft.OpenApi.Models;
-using Questao5.Application.Commands.Requests;
+using Questao5.Domain.Interfaces;
+using Questao5.Infrastructure.Database.Repositorios;
 using Questao5.Infrastructure.Sqlite;
 using System.Data;
 using System.Reflection;
@@ -12,6 +14,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 builder.Services.AddMediatR(Assembly.GetExecutingAssembly());
+
+
+builder.Services.AddScoped<IContaCorrenteRepositorio, ContaCorrenteRepositorio>();
+builder.Services.AddScoped<IIdempotenciaRepositorio, IdempotenciaRepositorio>();
+builder.Services.AddScoped<IMovimentacaoRepositorio, MovimentacaoRepository>();
+
 
 builder.Services.AddScoped<IDbConnection>(sp =>
 {
