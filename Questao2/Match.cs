@@ -1,6 +1,6 @@
 ﻿namespace Questao2
 {
-    public class Partidas
+    public class Match
     {
         public string Competition { get; set; }
         public int Year { get; set; }

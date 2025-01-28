@@ -9,6 +9,6 @@ namespace Questao2
         public int Total { get; set; }
         [JsonProperty("total_pages")]
         public int TotalPages { get; set; }
-        public List<Partidas> Data { get; set; }
+        public List<Match> Data { get; set; }
     }
 }

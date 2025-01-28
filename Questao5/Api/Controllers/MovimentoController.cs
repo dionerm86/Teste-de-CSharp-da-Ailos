@@ -85,7 +85,10 @@ public class MovimentoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetSaldo(string idContaCorrente)
     {
-        var result = await _mediator.Send(new ConsultarSaldoCommand(idContaCorrente));
+
+        var result = await _retryPolicy.ExecuteAsync(() =>
+                _circuitBreakerPolicy.ExecuteAsync(() =>
+                    _mediator.Send(new ConsultarSaldoCommand(idContaCorrente))));
 
         if (!result.IsValid)
             return BadRequest(result);
