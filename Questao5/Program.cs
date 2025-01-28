@@ -1,6 +1,6 @@
-using FluentAssertions.Common;
+using System.Data;
+using System.Reflection;
 using MediatR;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Data.Sqlite;
 using Microsoft.OpenApi.Models;
 using Questao5.Api.Examples;
@@ -9,8 +9,7 @@ using Questao5.Domain.Interfaces;
 using Questao5.Infrastructure.Database.Repositorios;
 using Questao5.Infrastructure.Sqlite;
 using Swashbuckle.AspNetCore.Filters;
-using System.Data;
-using System.Reflection;
+
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -6,7 +6,7 @@ namespace Questao5.Application.Validations
 {
     public static class MovimentoValidacao
     {
-        public static Result<CriarMovimentoResponse> ValidarMovimentacao(CriarMovimentacaoCommand request, int ativo, decimal saldoAtual)
+        public static Result<CriarMovimentoResponse> ValidarMovimentacao(CriarMovimentoCommand request, int ativo, decimal saldoAtual)
         {
             if (request == null)
                 return Result<CriarMovimentoResponse>.Failure("A requisição é nula.", "StatusCode 400: ");
@@ -17,10 +17,10 @@ namespace Questao5.Application.Validations
             if (request.Valor <= 0)
                 return Result<CriarMovimentoResponse>.Failure("O valor deve ser positivo.", "INVALID_VALUE: ");
 
-            if (request.TipoMovimentacao != "C" && request.TipoMovimentacao != "D")
+            if (request.TipoMovimento != "C" && request.TipoMovimento != "D")
                 return Result<CriarMovimentoResponse>.Failure("Tipo de movimento inválido.", "INVALID_TYPE: ");
 
-            if (request.TipoMovimentacao == "D" && request.Valor > saldoAtual)
+            if (request.TipoMovimento == "D" && request.Valor > saldoAtual)
                 return Result<CriarMovimentoResponse>.Failure("Saldo insuficiente para realizar a operação.", "INSUFFICIENT_FUNDS: ");
 
             return Result<CriarMovimentoResponse>.Success(new CriarMovimentoResponse());

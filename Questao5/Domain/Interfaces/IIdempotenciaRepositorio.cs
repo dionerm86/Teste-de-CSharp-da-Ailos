@@ -1,10 +1,9 @@
 ﻿using Questao5.Domain.Entities;
 
-namespace Questao5.Domain.Interfaces
+namespace Questao5.Domain.Interfaces;
+
+public interface IIdempotenciaRepositorio
 {
-    public interface IIdempotenciaRepositorio
-    {
-        Task CriarIdempotencia(Idempotencia idempotencia);
-        Task<Idempotencia> IsExisteChaveIdempotente(string idContaCorrente);
-    }
+    Task CriarIdempotencia(Idempotencia idempotencia);
+    Task<Idempotencia> IsExisteChaveIdempotente(string idContaCorrente);
 }
