@@ -34,8 +34,8 @@ namespace Questao5.Application.Commands.ConsultaSaldo.Handler
             {
                 Numero = contaCorrente.Numero,
                 Nome = contaCorrente.Nome,
-                DataHoraResposta = DateTime.UtcNow,
-                SaldoAtual = saldo
+                DataHoraResposta = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss"),
+                SaldoAtual = decimal.Parse(saldo.ToString("N2"))
             };
 
             return Result<SaldoResponse>.Success(response);

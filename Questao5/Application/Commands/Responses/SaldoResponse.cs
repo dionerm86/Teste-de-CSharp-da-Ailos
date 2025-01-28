@@ -4,7 +4,7 @@
     {
         public int Numero { get; set; }
         public string Nome { get; set; }
-        public DateTime DataHoraResposta { get; set; }
+        public string DataHoraResposta { get; set; }
         public decimal SaldoAtual { get; set; }
     }
 }

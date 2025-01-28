@@ -1,30 +1,29 @@
 ﻿using Questao5.Application.Commands.Movimentacao;
+using Questao5.Application.Commands.Responses;
+using Questao5.Application.Helpers;
 
 namespace Questao5.Application.Validations
 {
     public static class MovimentoValidacao
     {
-        public static void ValidarMovimentacao(CriarMovimentacaoCommand request, int ativo, decimal saldoAtual)
+        public static Result<CriarMovimentoResponse> ValidarMovimentacao(CriarMovimentacaoCommand request, int ativo, decimal saldoAtual)
         {
             if (request == null)
-                throw new Exception("400");
+                return Result<CriarMovimentoResponse>.Failure("A requisição é nula.", "StatusCode 400: ");
 
             if (ativo == 0)
-                throw new Exception("INACTIVE_ACCOUNT: Conta corrente inativa.");
+                return Result<CriarMovimentoResponse>.Failure("Conta corrente inativa.", "INACTIVE_ACCOUNT: ");
 
             if (request.Valor <= 0)
-                throw new Exception("INVALID_VALUE: O valor deve ser positivo.");
+                return Result<CriarMovimentoResponse>.Failure("O valor deve ser positivo.", "INVALID_VALUE: ");
 
             if (request.TipoMovimentacao != "C" && request.TipoMovimentacao != "D")
-                throw new Exception("INVALID_TYPE: Tipo de movimento inválido.");
+                return Result<CriarMovimentoResponse>.Failure("Tipo de movimento inválido.", "INVALID_TYPE: ");
 
-            if (request.TipoMovimentacao == "D")
-            {
-                if (request.Valor > saldoAtual)
-                {
-                    throw new Exception("INSUFFICIENT_FUNDS: Saldo insuficiente para realizar a operação.");
-                }
-            }
+            if (request.TipoMovimentacao == "D" && request.Valor > saldoAtual)
+                return Result<CriarMovimentoResponse>.Failure("Saldo insuficiente para realizar a operação.", "INSUFFICIENT_FUNDS: ");
+
+            return Result<CriarMovimentoResponse>.Success(new CriarMovimentoResponse());
         }
     }
 }

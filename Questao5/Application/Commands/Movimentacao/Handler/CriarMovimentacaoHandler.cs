@@ -1,12 +1,14 @@
 ﻿using MediatR;
 using Newtonsoft.Json;
+using Questao5.Application.Commands.Responses;
+using Questao5.Application.Helpers;
 using Questao5.Application.Validations;
 using Questao5.Domain.Entities;
 using Questao5.Domain.Interfaces;
 
 namespace Questao5.Application.Commands.Movimentacao.Handler
 {
-    public class CriarMovimentacaoHandler : IRequestHandler<CriarMovimentacaoCommand, string>
+    public class CriarMovimentacaoHandler : IRequestHandler<CriarMovimentacaoCommand, Result<CriarMovimentoResponse>>
     {
         private readonly IContaCorrenteRepositorio _contaCorrenteRepositorio;
         private readonly IIdempotenciaRepositorio _idempotenciaRepositorio;
@@ -19,19 +21,24 @@ namespace Questao5.Application.Commands.Movimentacao.Handler
             _movimentacaoRepositorio = movimentacaoRepositorio;
         }
 
-        public async Task<string> Handle(CriarMovimentacaoCommand request, CancellationToken cancellationToken)
+        public async Task<Result<CriarMovimentoResponse>> Handle(CriarMovimentacaoCommand request, CancellationToken cancellationToken)
         {
-            var contaCorrente = await _contaCorrenteRepositorio.ObterPorId(request.IdContaCorrente) ??
-                throw new Exception("INVALID_ACCOUNT: Conta corrente não encontrada.");
+            var contaCorrente = await _contaCorrenteRepositorio.ObterPorId(request.IdContaCorrente);
+
+            if (contaCorrente == null)
+                Result<CriarMovimentoResponse>.Failure("Conta corrente não encontrada.", "INVALID_ACCOUNT: ");
 
             var saldoAtual = await _movimentacaoRepositorio.ObterSaldoAtualAsync(request.IdContaCorrente);
 
-            MovimentoValidacao.ValidarMovimentacao(request, contaCorrente.Ativo, saldoAtual);
+            var validacao = MovimentoValidacao.ValidarMovimentacao(request, contaCorrente.Ativo, saldoAtual);
+
+            if (!validacao.IsValid)
+                return validacao;
 
             var existingRequest = await _idempotenciaRepositorio.IsExisteChaveIdempotente(request.ChaveIdempotencia.ToString());
 
             if (existingRequest != null)
-                return existingRequest.Resultado;
+                return Result<CriarMovimentoResponse>.Failure("Já existe uma movimentação com a chave de idempotencia fornecida.", "INVALID_ACTION:");
 
             var requestJson = JsonConvert.SerializeObject(request);
 
@@ -57,7 +64,7 @@ namespace Questao5.Application.Commands.Movimentacao.Handler
 
             await _idempotenciaRepositorio.CriarIdempotencia(idempotencia);
 
-            return movimento.IdMovimento;
+            return Result<CriarMovimentoResponse>.Success(new CriarMovimentoResponse { IdMovimento = movimento.IdMovimento });
         }
     }
 }

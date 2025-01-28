@@ -1,10 +1,14 @@
 using FluentAssertions.Common;
 using MediatR;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Data.Sqlite;
 using Microsoft.OpenApi.Models;
+using Questao5.Api.Examples;
+using Questao5.Application.AutoMapper;
 using Questao5.Domain.Interfaces;
 using Questao5.Infrastructure.Database.Repositorios;
 using Questao5.Infrastructure.Sqlite;
+using Swashbuckle.AspNetCore.Filters;
 using System.Data;
 using System.Reflection;
 
@@ -36,7 +40,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Bank API", Version = "v1" });
+    c.ExampleFilters();
 });
+
+builder.Services.AddSwaggerExamplesFromAssemblyOf<CriarMovimentacaoRequestExemplo>();
+
+builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 
 var app = builder.Build();
 

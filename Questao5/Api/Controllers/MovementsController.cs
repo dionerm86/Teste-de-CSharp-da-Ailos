@@ -1,10 +1,15 @@
-﻿using MediatR;
+﻿using AutoMapper;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Polly;
-using Polly.Retry;
 using Polly.CircuitBreaker;
+using Polly.Retry;
+using Questao5.Api.Examples;
 using Questao5.Application.Commands.Movimentacao;
+using Questao5.Application.Commands.Responses;
+using Questao5.Application.DTOs.Request;
 using Questao5.Application.Helpers;
+using Swashbuckle.AspNetCore.Filters;
 
 namespace Questao5.Api.Controllers
 {
@@ -15,42 +20,47 @@ namespace Questao5.Api.Controllers
         private readonly IMediator _mediator;
         private readonly AsyncRetryPolicy _retryPolicy;
         private readonly AsyncCircuitBreakerPolicy _circuitBreakerPolicy;
+        private readonly IMapper _mapper;
 
-        public MovementsController(IMediator mediator)
+        public MovementsController(IMediator mediator, IMapper mapper)
         {
             _mediator = mediator;
             _retryPolicy = Policy
                 .Handle<Exception>()
-                .WaitAndRetryAsync(3, attempt => TimeSpan.FromSeconds(attempt));
+                .WaitAndRetryAsync(3, tentar => TimeSpan.FromSeconds(tentar));
 
             _circuitBreakerPolicy = Policy
                 .Handle<Exception>()
                 .CircuitBreakerAsync(5, TimeSpan.FromSeconds(30));
+            _mapper = mapper;
         }
 
         /// <summary>
         /// Cria um novo movimento.
         /// </summary>
-        /// <param name="command">Dados do comando para criar o movimento.</param>
+        /// <param name="request">Dados da requisição para criar o movimento.</param>
         /// <returns>Resultado da operação.</returns>
         [HttpPost]
-        [ProducesResponseType(typeof(Result<string>), StatusCodes.Status200OK)]
+        [SwaggerRequestExample(typeof(CriarMovimentacaoRequest), typeof(CriarMovimentacaoRequestExemplo))]
+        [ProducesResponseType(typeof(Result<CriarMovimentoResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status405MethodNotAllowed)]
         [ProducesResponseType(StatusCodes.Status412PreconditionFailed)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> CreateMovement([FromBody] CriarMovimentacaoCommand command)
+        public async Task<IActionResult> CreateMovement([FromBody] CriarMovimentacaoRequest request)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
             try
             {
-                var result = await _retryPolicy.ExecuteAsync(() =>
+                var command = _mapper.Map<CriarMovimentacaoCommand>(request);
+
+                var response = await _retryPolicy.ExecuteAsync(() =>
                     _circuitBreakerPolicy.ExecuteAsync(() =>
                         _mediator.Send(command)));
 
-                return CreatedAtAction(nameof(CreateMovement), new { id = result }, result);
+                return CreatedAtAction(nameof(CreateMovement), response);
             }
             catch (Exception ex)
             {
@@ -58,6 +68,11 @@ namespace Questao5.Api.Controllers
             }
         }
 
+        /// <summary>
+        /// Obtém o saldo atual do cliente.
+        /// </summary>
+        /// <param name="idContaCorrente">Id da conta corrente do cliente.</param>
+        /// <returns>Saldo atual do cliente</returns>
         [HttpGet("{idContaCorrente}/saldo")]
         [ProducesResponseType(typeof(Result<long>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorDetails), StatusCodes.Status400BadRequest)]
@@ -67,8 +82,7 @@ namespace Questao5.Api.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetSaldo(string idContaCorrente)
         {
-            var query = new ConsultarSaldoCommand(idContaCorrente);
-            var result = await _mediator.Send(query);
+            var result = await _mediator.Send(new ConsultarSaldoCommand(idContaCorrente));
 
             if (!result.IsValid)
                 return BadRequest(new { mensagem = result.ErrorMessage, tipo = result.ErrorType });
