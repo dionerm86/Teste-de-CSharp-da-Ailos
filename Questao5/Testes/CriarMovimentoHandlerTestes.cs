@@ -40,7 +40,7 @@ public class CriarMovimentacaoHandlerTests
         result.IsValid.Should().BeTrue();
         await _movimentacaoRepositorio.Received(1).CriarMovimentacao(Arg.Is<Movimento>(m =>
             m.IdContaCorrente == command.IdContaCorrente &&
-            m.Valor == command.Valor &&
+            Math.Abs(m.Valor - command.Valor) < 0.01m &&
             m.TipoMovimento == "C"
         ));
     }
@@ -66,9 +66,10 @@ public class CriarMovimentacaoHandlerTests
         result.IsValid.Should().BeTrue();
         await _movimentacaoRepositorio.Received(1).CriarMovimentacao(Arg.Is<Movimento>(m =>
             m.IdContaCorrente == command.IdContaCorrente &&
-            m.Valor == command.Valor &&
+            Math.Abs(m.Valor - command.Valor) < 0.01m &&  // Tolerância para valores decimais
             m.TipoMovimento == "D"
         ));
+
     }
 
     [Fact]
@@ -84,7 +85,7 @@ public class CriarMovimentacaoHandlerTests
         var saldoAtual = command.Valor * 2;
 
         _movimentacaoRepositorio.ObterSaldoAtualAsync(command.IdContaCorrente).Returns(saldoAtual);
-        _ =  _ideaRepositorio.IsExisteChaveIdempotente(command.ChaveIdempotencia.ToString()).Returns(new Idempotencia
+        _ = _ideaRepositorio.IsExisteChaveIdempotente(command.ChaveIdempotencia.ToString()).Returns(new Idempotencia
         {
             ChaveIdempotencia = command.ChaveIdempotencia.ToString(),
             Requisicao = "FakeResultado",

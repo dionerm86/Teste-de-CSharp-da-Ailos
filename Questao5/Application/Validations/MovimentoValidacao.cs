@@ -20,7 +20,7 @@ namespace Questao5.Application.Validations
             if (request.TipoMovimento != "C" && request.TipoMovimento != "D")
                 return Result<CriarMovimentoResponse>.Failure("Tipo de movimento inválido.", "INVALID_TYPE: ");
 
-            if (request.TipoMovimento == "D" && request.Valor > saldoAtual)
+            if (request.TipoMovimento == "D" && decimal.Parse(request.Valor.ToString("N2")) > decimal.Parse(saldoAtual.ToString("N2")))
                 return Result<CriarMovimentoResponse>.Failure("Saldo insuficiente para realizar a operação.", "INSUFFICIENT_FUNDS: ");
 
             return Result<CriarMovimentoResponse>.Success(new CriarMovimentoResponse());

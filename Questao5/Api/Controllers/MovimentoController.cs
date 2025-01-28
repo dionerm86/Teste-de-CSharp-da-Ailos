@@ -41,14 +41,14 @@ public class MovimentoController : ControllerBase
     /// <param name="request">Dados da requisição para criar o movimento.</param>
     /// <returns>Resultado da operação.</returns>
     [HttpPost]
-    [SwaggerRequestExample(typeof(CriarMovimentacaoRequest), typeof(CriarMovimentacaoRequestExemplo))]
+    [SwaggerRequestExample(typeof(CriarMovimentoRequest), typeof(CriarMovimentoRequestExemplo))]
     [ProducesResponseType(typeof(Result<CriarMovimentoResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status405MethodNotAllowed)]
     [ProducesResponseType(StatusCodes.Status412PreconditionFailed)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> CreateMovement([FromBody] CriarMovimentacaoRequest request)
+    public async Task<IActionResult> CreateMovement([FromBody] CriarMovimentoRequest request)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -60,7 +60,10 @@ public class MovimentoController : ControllerBase
                 _circuitBreakerPolicy.ExecuteAsync(() =>
                     _mediator.Send(command)));
 
-            return CreatedAtAction(nameof(CreateMovement), response);
+            if (response.IsValid)
+                return CreatedAtAction(nameof(CreateMovement), response.Data);
+            else
+                return BadRequest(response);
         }
         catch (Exception ex)
         {
@@ -85,15 +88,9 @@ public class MovimentoController : ControllerBase
         var result = await _mediator.Send(new ConsultarSaldoCommand(idContaCorrente));
 
         if (!result.IsValid)
-            return BadRequest(new { mensagem = result.ErrorMessage, tipo = result.ErrorType });
-
-        return Ok(new
-        {
-            Numero = result.Data.Numero,
-            NomeTitular = result.Data.Nome,
-            DataHoraResposta = result.Data.DataHoraResposta,
-            SaldoAtual = result.Data.SaldoAtual
-        });
+            return BadRequest(result);
+        
+        return Ok(result.Data);
     }
 }
 

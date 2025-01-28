@@ -8,6 +8,6 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        CreateMap<CriarMovimentacaoRequest, CriarMovimentoCommand>();
+        CreateMap<CriarMovimentoRequest, CriarMovimentoCommand>();
     }
 }

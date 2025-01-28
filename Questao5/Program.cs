@@ -42,7 +42,7 @@ builder.Services.AddSwaggerGen(c =>
     c.ExampleFilters();
 });
 
-builder.Services.AddSwaggerExamplesFromAssemblyOf<CriarMovimentacaoRequestExemplo>();
+builder.Services.AddSwaggerExamplesFromAssemblyOf<CriarMovimentoRequestExemplo>();
 
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);

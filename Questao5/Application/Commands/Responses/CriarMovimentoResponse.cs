@@ -2,5 +2,5 @@
 
 public class CriarMovimentoResponse
 {
-    public string IdMovimento;
+    public string IdMovimento { get; set; }
 }

@@ -4,16 +4,16 @@ using Swashbuckle.AspNetCore.Filters;
 
 namespace Questao5.Api.Examples;
 
-public class CriarMovimentacaoRequestExemplo : IExamplesProvider<CriarMovimentacaoRequest>
+public class CriarMovimentoRequestExemplo : IExamplesProvider<CriarMovimentoRequest>
 {
-    public CriarMovimentacaoRequest GetExamples()
+    public CriarMovimentoRequest GetExamples()
     {
-        return new CriarMovimentacaoRequest
+        return new CriarMovimentoRequest
         {
             IdContaCorrente = Guid.NewGuid().ToString(),
             ChaveIdempotencia = Guid.NewGuid(),
             Numero = "123",
-            TipoMovimentacao = "C",
+            TipoMovimento = "C",
             Valor = 1500
         };
     }

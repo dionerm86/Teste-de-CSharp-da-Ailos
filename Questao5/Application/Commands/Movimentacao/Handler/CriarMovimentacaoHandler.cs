@@ -48,7 +48,7 @@ public class CriarMovimentacaoHandler : IRequestHandler<CriarMovimentoCommand, R
             IdContaCorrente = request.IdContaCorrente,
             DataMovimento = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
             TipoMovimento = request.TipoMovimento,
-            Valor = request.Valor
+            Valor = decimal.Parse(request.Valor.ToString("N2"))
         };
 
         await _movimentacaoRepositorio.CriarMovimentacao(movimento);

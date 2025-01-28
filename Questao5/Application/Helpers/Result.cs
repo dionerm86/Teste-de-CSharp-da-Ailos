@@ -1,4 +1,6 @@
-﻿namespace Questao5.Application.Helpers;
+﻿using System.Net;
+
+namespace Questao5.Application.Helpers;
 
 public class Result<T>
 {
@@ -6,6 +8,7 @@ public class Result<T>
     public T Data { get; }
     public string ErrorMessage { get; }
     public string ErrorType { get; }
+    public HttpStatusCode StatusCode { get; }
 
     private Result(bool isValid, T data, string errorMessage, string errorType)
     {
@@ -13,6 +16,7 @@ public class Result<T>
         Data = data;
         ErrorMessage = errorMessage;
         ErrorType = errorType;
+        StatusCode = HttpStatusCode.BadRequest;
     }
 
     public static Result<T> Success(T data) => new(true, data, null, null);
